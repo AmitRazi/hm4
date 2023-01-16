@@ -328,9 +328,9 @@ int* shortsPath_cmd(pnode head,int srcnum,int destnum,int flag){
 
     if(flag == 0) {
         if (dist[destnum] < 9999) {
-            printf("Dijsktra shortest path: %d\n", dist[destnum]);
+            printf("Dijsktra shortest path: %d \n", dist[destnum]);
         } else {
-            printf("Dijsktra shortest path: -1\n");
+            printf("Dijsktra shortest path: -1 \n");
         }
     }
     free(edges);
@@ -418,10 +418,10 @@ void TSP_cmd(pnode head){
         if(distance < shortest) shortest = distance;
     }
     if(shortest< 9999){
-        printf("TSP shortest path: %d\n", shortest);
+        printf("TSP shortest path: %d \n", shortest);
     }
     else{
-        printf("TSP shortest path: -1\n");
+        printf("TSP shortest path: -1 \n");
     }
     free(nodes);
     free(helper);
