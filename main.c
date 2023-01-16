@@ -24,13 +24,13 @@ void build_graph_cmd(pnode *head);
 void insert_node_cmd(pnode *head);
 void delete_node_cmd(pnode *head, int numtodelete,int flag);
 void deleteGraph_cmd(pnode* head);
-int* shortsPath_cmd(pnode head,int srcnum,int destnum,int flag);
+int* shortsPath_cmd(pnode head,int* dist, int srcnum,int destnum,int flag);
 void TSP_cmd(pnode head);
 void print_heap(pedge *edges);
 pnode createNode(int i);
 pnode findNode(pnode *head,int nodeNum);
 void addEdge(pnode src,pnode dest);
-void freenode(pnode *node);
+void freenode(pnode node);
 void init_heap(pnode *head);
 
 void heap_insert(pedge *edges, int i);
@@ -87,7 +87,9 @@ int main(){
             int src = strtol(buf, NULL, 0);
             nextInput(buf);
             int dest = strtol(buf, NULL, 0);
-           shortsPath_cmd(head,src,dest,0);
+            int *dist = (int*)malloc((MaxNodeNum+1)*sizeof(int));
+            shortsPath_cmd(head,dist,src,dest,0);
+            free(dist);
             continue;
         }
         if(strcmp(buf,"T ") == 0){
@@ -96,11 +98,12 @@ int main(){
         nextInput(buf);
     }
     deleteGraph_cmd(&head);
+    free(head);
     return 0;
 }
 
 void build_graph_cmd(pnode *head) {
-   // if(*head != NULL) deleteGraph_cmd(head);
+    // if(*head != NULL) deleteGraph_cmd(head);
     buf[10];
     nextInput(buf);
     int numOfNodes = atoi(buf);
@@ -193,16 +196,17 @@ void delete_node_cmd(pnode *head, int numtodelete,int flag) {
     cur = *head;
     if(cur->node_num == numtodelete){
         (*head) = cur->next;
-        freenode(&todelete);
+        freenode(todelete);
         return;
     }
     while(cur->next->node_num != numtodelete) cur=cur->next;
     cur->next=cur->next->next;
-    freenode(&todelete);
+    freenode(todelete);
 }
 
-void freenode(pnode *todelete){
-    pedge curedge = (*todelete)->edges;
+void freenode(pnode todelete){
+    pedge curedge = todelete->edges;
+    todelete->edges = NULL;
     pedge next = NULL;
     while(curedge != NULL){
         next = curedge->next;
@@ -210,7 +214,8 @@ void freenode(pnode *todelete){
         numofedges--;
         curedge = next;
     }
-    free(*todelete);
+    free(curedge);
+    free(todelete);
 }
 
 void insert_node_cmd(pnode *head){
@@ -266,31 +271,8 @@ void heap_insert(pedge *edges, int i){
     edges[j] = temp;
 }
 
-void init_heap(pnode *head){
-    pedge *edges = calloc(numofedges,sizeof(pedge));
-    pnode cur = *head;
-    int i = 0;
-    while(cur != NULL){
-        pedge curedge = cur->edges;
-        while(curedge != NULL){
-            edges[i] = curedge;
-            curedge = curedge->next;
-            i++;
-        }
-        cur = cur->next;
-    }
-
-    for(i = 1 ; i < numofedges ; i++){
-        heap_insert(edges,i);
-    }
-    print_heap(edges);
-    pedge curedge = NULL;
-
-}
-
-int* shortsPath_cmd(pnode head,int srcnum,int destnum,int flag){
+int* shortsPath_cmd(pnode head,int *dist, int srcnum,int destnum,int flag){
     int src = srcnum;
-    int *dist = calloc(MaxNodeNum+1, sizeof(int));
     for(int i = 0 ; i <= MaxNodeNum ; i++) dist[i] = 9999;
     pnode srcnode = findNode(&head,src);
     pedge curedge = srcnode->edges;
@@ -298,7 +280,7 @@ int* shortsPath_cmd(pnode head,int srcnum,int destnum,int flag){
         dist[curedge->endpoint->node_num] = curedge->weight;
         curedge = curedge->next;
     }
-    pedge *edges = calloc(numofedges,sizeof(pedge));
+    pedge *edges = (pedge*)calloc(numofedges,sizeof(pedge));
     pnode cur = head;
     int i = 0;
     while(cur != NULL){
@@ -334,7 +316,6 @@ int* shortsPath_cmd(pnode head,int srcnum,int destnum,int flag){
         }
     }
     free(edges);
-
     return dist;
 }
 
@@ -396,14 +377,17 @@ void TSP_cmd(pnode head){
 
     int **distances = (int**)calloc(k, sizeof(int*));
     for(int i = 0 ; i < k ; i++){
-        distances[i] = shortsPath_cmd(head,nodes[i]->node_num,0,1);
+        distances[i] = (int*)malloc((MaxNodeNum+1)*sizeof(int));
     }
-   /* for(int i = 0 ; i < k ; i++){
-        for(int j = 0 ; j <= MaxNodeNum ; j++){
-            printf("%d ",distances[i][j]);
-        }
-        printf("\n");
-    }*/
+    for(int i = 0 ; i < k ; i++){
+        shortsPath_cmd(head,distances[i],nodes[i]->node_num,0,1);
+    }
+    /* for(int i = 0 ; i < k ; i++){
+         for(int j = 0 ; j <= MaxNodeNum ; j++){
+             printf("%d ",distances[i][j]);
+         }
+         printf("\n");
+     }*/
     int shortest = 9999;
     int fact = factorial(k);
     for(int i = 0 ; i < fact ; i++){
@@ -423,13 +407,14 @@ void TSP_cmd(pnode head){
     else{
         printf("TSP shortest path: -1 \n");
     }
-    free(nodes);
-    free(helper);
-    free(permutations);
-    for(int i = 0 ; i < k ; i++){
-        free(distances[i]);
-    }
+    for(int i = 0; i < k; i++)
+        free(*(distances+i));
     free(distances);
+    free(permutations);
+    free(helper);
+    free(nodes);
+
+
 }
 
 int factorial(int k) {
@@ -445,7 +430,7 @@ void deleteGraph_cmd(pnode* head){
     pnode next = NULL;
     while(cur != NULL){
         next = cur->next;
-        delete_node_cmd(head,cur->node_num,1);
+        delete_node_cmd(head,cur->node_num,0);
         cur = next;
     }
 
