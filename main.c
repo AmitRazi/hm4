@@ -79,7 +79,7 @@ int main(){
         if(strcmp(buf,"D ") == 0){
             nextInput(buf);
             int todelete = strtol(buf, NULL, 0);
-            delete_node_cmd(&head ,todelete,0);
+            delete_node_cmd(&head ,todelete,1);
             continue;
         }
         if(strcmp(buf,"S ") == 0){
