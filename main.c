@@ -79,7 +79,7 @@ int main(){
         if(strcmp(buf,"D ") == 0){
             nextInput(buf);
             int todelete = strtol(buf, NULL, 0);
-            delete_node_cmd(&head ,todelete,0);
+            delete_node_cmd(&head ,todelete,1);
             continue;
         }
         if(strcmp(buf,"S ") == 0){
@@ -297,7 +297,7 @@ int* shortsPath_cmd(pnode head,int *dist, int srcnum,int destnum,int flag){
         heap_insert(edges,i);
     }
     int j = numofedges-1;
-    while(j>= 0){
+    while(j> 0){
         // printf("\nsrc: %d, dest: %d, weight: %d\n",edges[0]->startpoint->node_num,edges[0]->endpoint->node_num,edges[0]->weight);
         if(edges[0] == NULL) break;
         if(dist[edges[0]->startpoint->node_num]+edges[0]->weight < dist[edges[0]->endpoint->node_num])
