@@ -166,7 +166,7 @@ void addEdge(pnode src,pnode dest){
 void delete_node_cmd(pnode *head, int numtodelete,int flag) {
     pnode todelete = findNode(head, numtodelete);
     pnode cur = *head;
-    while(cur != NULL && flag){
+    while(cur != NULL && flag == 0){
         pedge curedge = cur->edges;
         if(curedge == NULL){
             cur = cur->next;
@@ -430,7 +430,7 @@ void deleteGraph_cmd(pnode* head){
     pnode next = NULL;
     while(cur != NULL){
         next = cur->next;
-        delete_node_cmd(head,cur->node_num,0);
+        delete_node_cmd(head,cur->node_num,1);
         cur = next;
     }
 
