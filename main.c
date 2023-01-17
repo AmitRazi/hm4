@@ -163,7 +163,6 @@ void addEdge(pnode src,pnode dest){
 }
 
 void delete_node_cmd(pnode *head, int numtodelete,int flag) {
-    pnode todelete = findNode(head, numtodelete);
     pnode cur = *head;
     while(cur != NULL && flag == 1){
         pedge curedge = cur->edges;
@@ -188,13 +187,15 @@ void delete_node_cmd(pnode *head, int numtodelete,int flag) {
     }
     cur = *head;
     if(cur->node_num == numtodelete){
+        pnode temp = cur;
         (*head) = cur->next;
-        freenode(todelete);
+        freenode(temp);
         return;
     }
     while(cur->next->node_num != numtodelete) cur=cur->next;
+    pnode temp = cur->next;
     cur->next=cur->next->next;
-    freenode(todelete);
+    freenode(temp);
 }
 
 void freenode(pnode todelete){
@@ -202,6 +203,9 @@ void freenode(pnode todelete){
     pedge next = NULL;
     while(curedge != NULL){
         next = curedge->next;
+        curedge->next = NULL;
+        curedge->endpoint = NULL;
+        curedge->startpoint = NULL;
         free(curedge);
         numofedges--;
         curedge = next;
@@ -214,11 +218,26 @@ void insert_node_cmd(pnode *head){
     nextInput(buf);
     int nodeNum = strtol(buf, NULL, 0);
     if(nodeNum > MaxNodeNum) MaxNodeNum = nodeNum;
+    pnode newnode;
     if(findNode(head,nodeNum) != NULL){
+        newnode = createNode(nodeNum);
+        while(cur != NULL){
+            pedge curedge = cur->edges;
+            while(curedge != NULL){
+                if(curedge->endpoint->node_num == nodeNum || curedge->endpoint->node_num < 0 || curedge->endpoint->node_num > MaxNodeNum){
+                    curedge->endpoint = newnode;
+                }
+                curedge = curedge->next;
+            }
+            cur = cur->next;
+        }
         delete_node_cmd(head, nodeNum,0);
-    }
 
-    pnode newnode = createNode(nodeNum);
+    }
+    else{
+        newnode = createNode(nodeNum);
+    }
+    cur =*head;
     while(cur->next != NULL && cur->next->node_num < nodeNum) cur=cur->next;
     newnode->next = cur->next;
     cur->next = newnode;
@@ -284,7 +303,7 @@ int* shortsPath_cmd(pnode head,int *dist, int srcnum,int destnum,int flag){
         cur = cur->next;
     }
 
-    for(i = 1 ; i < numofedges ; i++){
+    for(i = 0 ; i < numofedges ; i++){
         heap_insert(edges,i);
     }
     int j = numofedges-1;
@@ -310,13 +329,6 @@ int* shortsPath_cmd(pnode head,int *dist, int srcnum,int destnum,int flag){
     return dist;
 }
 
-void print_heap(pedge *edges) {
-    printf("Min Heap:\n");
-    for (int i=0; i< 8 ; i++) {
-        printf("dest: %d, src: %d, weight:%d\n",edges[i]->endpoint->node_num,edges[i]->startpoint->node_num,edges[i]->weight);
-    }
-    printf("\n");
-}
 void addPermutation(int *arr1, int n, int *arr2) {
     int permutation = 0;
     int i;
@@ -371,12 +383,7 @@ void TSP_cmd(pnode head){
     for(int i = 0 ; i < k ; i++){
         shortsPath_cmd(head,distances[i],nodes[i]->node_num,0,1);
     }
-    /* for(int i = 0 ; i < k ; i++){
-         for(int j = 0 ; j <= MaxNodeNum ; j++){
-             printf("%d ",distances[i][j]);
-         }
-         printf("\n");
-     }*/
+
     int shortest = 9999;
     int fact = factorial(k);
     for(int i = 0 ; i < fact ; i++){
