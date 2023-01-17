@@ -103,8 +103,7 @@ int main(){
 }
 
 void build_graph_cmd(pnode *head) {
-    // if(*head != NULL) deleteGraph_cmd(head);
-    buf[10];
+    if(*head != NULL) deleteGraph_cmd(head);
     nextInput(buf);
     int numOfNodes = atoi(buf);
     MaxNodeNum = numOfNodes-1;
@@ -166,30 +165,24 @@ void addEdge(pnode src,pnode dest){
 void delete_node_cmd(pnode *head, int numtodelete,int flag) {
     pnode todelete = findNode(head, numtodelete);
     pnode cur = *head;
-    while(cur != NULL && flag == 0){
+    while(cur != NULL && flag == 1){
         pedge curedge = cur->edges;
         if(curedge == NULL){
             cur = cur->next;
             continue;
         }
         if(curedge->endpoint->node_num == numtodelete){
+            pedge temp = curedge;
             cur->edges = cur->edges->next;
             cur = cur->next;
+            free(temp);
             continue;
         }
-        pedge next = NULL;
-        pedge prev = curedge;
-        curedge = curedge->next;
-        while(curedge != NULL){
-            next = curedge->next;
-            if(curedge->endpoint->node_num == numtodelete){
-                prev->next = next;
-                free(curedge);
-                numofedges--;
-                break;
-            }
-            prev=curedge;
-            curedge=next;
+        while(curedge->next != NULL && curedge->next->endpoint->node_num != numtodelete) curedge =curedge->next;
+        if(curedge->next != NULL && curedge->next->endpoint->node_num == numtodelete){
+            pedge temp = curedge->next;
+            curedge->next = temp->next;
+            free(temp);
         }
         cur = cur->next;
     }
@@ -206,7 +199,6 @@ void delete_node_cmd(pnode *head, int numtodelete,int flag) {
 
 void freenode(pnode todelete){
     pedge curedge = todelete->edges;
-    todelete->edges = NULL;
     pedge next = NULL;
     while(curedge != NULL){
         next = curedge->next;
@@ -214,7 +206,6 @@ void freenode(pnode todelete){
         numofedges--;
         curedge = next;
     }
-    free(curedge);
     free(todelete);
 }
 
@@ -280,7 +271,7 @@ int* shortsPath_cmd(pnode head,int *dist, int srcnum,int destnum,int flag){
         dist[curedge->endpoint->node_num] = curedge->weight;
         curedge = curedge->next;
     }
-    pedge *edges = (pedge*)calloc(numofedges,sizeof(pedge));
+    pedge *edges = (pedge*)calloc(numofedges+1,sizeof(pedge));
     pnode cur = head;
     int i = 0;
     while(cur != NULL){
@@ -320,8 +311,6 @@ int* shortsPath_cmd(pnode head,int *dist, int srcnum,int destnum,int flag){
 }
 
 void print_heap(pedge *edges) {
-    // Simply print the array. This is an
-    // inorder traversal of the tree
     printf("Min Heap:\n");
     for (int i=0; i< 8 ; i++) {
         printf("dest: %d, src: %d, weight:%d\n",edges[i]->endpoint->node_num,edges[i]->startpoint->node_num,edges[i]->weight);
@@ -430,7 +419,7 @@ void deleteGraph_cmd(pnode* head){
     pnode next = NULL;
     while(cur != NULL){
         next = cur->next;
-        delete_node_cmd(head,cur->node_num,1);
+        delete_node_cmd(head,cur->node_num,0);
         cur = next;
     }
 
