@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 
+#define INF 999999
 typedef struct GRAPH_NODE_ *pnode;;
 
 
@@ -283,7 +284,7 @@ void heap_insert(pedge *edges, int i){
 
 int* shortsPath_cmd(pnode head,int *dist, int srcnum,int destnum,int flag){
     int src = srcnum;
-    for(int i = 0 ; i <= MaxNodeNum ; i++) dist[i] = 9999;
+    for(int i = 0 ; i <= MaxNodeNum ; i++) dist[i] = INF;
     pnode srcnode = findNode(&head,src);
     pedge curedge = srcnode->edges;
     while(curedge != NULL){
@@ -319,7 +320,7 @@ int* shortsPath_cmd(pnode head,int *dist, int srcnum,int destnum,int flag){
 
 
     if(flag == 0) {
-        if (dist[destnum] < 9999) {
+        if (dist[destnum] < INF) {
             printf("Dijsktra shortest path: %d \n", dist[destnum]);
         } else {
             printf("Dijsktra shortest path: -1 \n");
@@ -384,7 +385,7 @@ void TSP_cmd(pnode head){
         shortsPath_cmd(head,distances[i],nodes[i]->node_num,0,1);
     }
 
-    int shortest = 9999;
+    int shortest = INF;
     int fact = factorial(k);
     for(int i = 0 ; i < fact ; i++){
         int temp = permutations[i];
@@ -397,7 +398,7 @@ void TSP_cmd(pnode head){
         }
         if(distance < shortest) shortest = distance;
     }
-    if(shortest< 9999){
+    if(shortest< INF){
         printf("TSP shortest path: %d \n", shortest);
     }
     else{
