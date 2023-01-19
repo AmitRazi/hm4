@@ -60,7 +60,7 @@ int nextInput(char *buf){
     if(c == '\n') return 0;
     return 1;
 }
-char buf[300];
+char buf[100000];
 int numofedges = 0;
 int MaxNodeNum = 0;
 
